@@ -14,10 +14,6 @@ import pandas as pd
 ## A NIVEL PROFUNDO PARA REVISAR ERRORES Y/O ADVERTENCIAS
 warnings.filterwarnings('ignore')
 
-# =========================== Connection Info =================================
-user = 'diego.hdz'          # User
-pswd = 'Equity.2024$'       # Password
-host = '172.16.10.55'       # Host
 # date = (pd.Timestamp.today() - pd.Timedelta(days = 1)).strftime('%Y-%m-%d')
 date = '2025-09-12'
 date_files = '12092025'
