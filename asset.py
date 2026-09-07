@@ -40,9 +40,20 @@ def MktValueUSD(value, ccy):
     else:
         return value
 
+def FXrate(data, mxnusd, eurusd):
+    if data.CCY == 'MXN':
+        return mxnusd
+    elif data.CCY == 'EUR':
+        return eurusd
+    else:
+        return 1.0
+
 print('\n', DATE)
 data = pd.read_excel(PARENT_PATH / 'Contributtion' / 'Template_MySQL.xlsx')
-data['MKT_VALUE_USD'] = [MktValueUSD(data['MKT_VALUE'][i], data['CCY'][i] ) for i in range(len(data))]
+
+data['FXRATE'] = data.apply(FXrate, args = (MXNUSD, EURUSD), axis = 1)
+data['MKT_VALUE_USD'] = data.MKT_VALUE * data.FXRATE
+# data['MKT_VALUE_USD'] = [MktValueUSD(data['MKT_VALUE'][i], data['CCY'][i] ) for i in range(len(data))]
 main_cols = data.columns
 
 # Dictionaries where all historyc data is saved
@@ -91,7 +102,8 @@ ubs_query = f"""
                     FROM UBS.SEC S
                     WHERE P.SEC_SYMBOL = S.SEC_SYMBOL
                     LIMIT 1
-                ) AS MATURITY_DT, P.SEC_SYMBOL
+                ) AS MATURITY_DT, P.SEC_SYMBOL,
+                P.TRX_CD
             FROM POSITION P
             WHERE P.BALANCE_DT = "{DATE}";
             """
@@ -117,6 +129,8 @@ ubs_data['UNRELAIZED_GAIN/LOSS'] = ''
 ubs_data['FXRATE'] = 1.0
 ubs_data['EXPOSITION_CCY'] = 'USD'
 ubs_data['Actualizado'] = ubs_data.BALANCE_DT
+
+ubs_data.loc[ubs_data['TRX_CD'] == 'wd', ['MKT_VALUE', 'MKT_VALUE_USD']] = -ubs_data.TRADE_AMT
 
 if ubs_data.shape[0] != 0:
     data = pd.concat([data, ubs_data[main_cols]], axis = 0)
@@ -212,9 +226,6 @@ jb_query = f"""
             WHERE PER_DATUM = '{DATE}';
             """
 jb_data = pd.read_sql(jb_query, con = jb_conn)
-# notes = pd.read_excel(f'{path_pc}/Notas Estructuradas/Graficas_Barreras.xlsx', sheet_name = 'NOTAS', engine = 'openpyxl')
-# jb_data = pd.merge(jb_data, notes[['ISIN', 'SHORT_NAME']], on = 'ISIN', how = 'left')
-# jb_data['KURZ_TEXT'] = jb_data.SHORT_NAME.combine_first(jb_data.KURZ_TEXT)
 
 jb_data['PORTFOLIO'] = jb_data.ZRNR.apply(portafolio, col = 'Portafolio')
 jb_data['BANK'] = 'JBR'
