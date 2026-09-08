@@ -30,16 +30,6 @@ catPortf = catPortf[catPortf.Status.notnull()][['Banco', 'Portafolio', 'Cuenta',
 assetClass = pd.read_excel(PARENT_PATH / 'Contributtion' / 'Diccionarios_MySQL.xlsx',
                            sheet_name = "Asset_class", converters = {'Cuenta': str}, engine = "openpyxl")
 
-def MktValueUSD(value, ccy): 
-    """ Ajusta al monto de acuerdo a la moneda que se elija en ccy usando el 
-    tipo de cambio de la primer sección"""
-    if ccy == 'MXN':
-        return value * MXNUSD
-    elif ccy == 'EUR':
-        return value * EURUSD
-    else:
-        return value
-
 def FXrate(data, mxnusd, eurusd):
     if data.CCY == 'MXN':
         return mxnusd
@@ -48,12 +38,20 @@ def FXrate(data, mxnusd, eurusd):
     else:
         return 1.0
 
+def accounts(data):
+    accts = {'DDA00080-11614': '1614', 'DDA00080-94280': '4280',
+             'GCR384-55557': '5557', 'CLS FL18-70002': '0002',
+             'CH8408235006903701096-69037': '1096',
+             'CH9308235006903702001-69037': '600001',
+             'CH1508235006849002001-68490': '02001'}
+    
+    return accts.get(data.INSTR_ID, data.ACCT)
+
 print('\n', DATE)
 data = pd.read_excel(PARENT_PATH / 'Contributtion' / 'Template_MySQL.xlsx')
 
 data['FXRATE'] = data.apply(FXrate, args = (MXNUSD, EURUSD), axis = 1)
 data['MKT_VALUE_USD'] = data.MKT_VALUE * data.FXRATE
-# data['MKT_VALUE_USD'] = [MktValueUSD(data['MKT_VALUE'][i], data['CCY'][i] ) for i in range(len(data))]
 main_cols = data.columns
 
 # Dictionaries where all historyc data is saved
@@ -116,7 +114,7 @@ ubs_data['ASSET_CLASS'] = ''
 ubs_data['SUB_ASSET_CLASS'] = ''
 ubs_data['SHORT_NAME'] = ''
 ubs_data['INSTR_ID'] = ubs_data.SEC_SYMBOL + '-' + ubs_data.ACCT
-ubs_data['DESCRIPTION'] = ubs_data.DESCRIPTION #[desc + ' ' + dt.strftime('%m/%d/%y') if 'TREASURY BILL' in desc else desc for desc, dt in zip(ubs_data.DESCRIPTION, ubs_data.MATURITY_DT)]
+ubs_data['DESCRIPTION'] = ubs_data.DESCRIPTION
 ubs_data['ISIN'] = ''
 ubs_data['SYMBOL'] = ubs_data.SEC_SYMBOL
 ubs_data['UNIT_COST'] = ''
@@ -243,7 +241,6 @@ jb_data['QUANTITY'] = [let if 'CUENTA CORRIENTE' in bez else bes for bes, bez, l
 jb_data['UNIT_COST'] = ''
 jb_data['UNIT_COST_CCY'] = [let if 'CUENTA CORRIENTE' in bez else bes for bes, bez, let in zip(jb_data.TITEL_WRG_TEXT, jb_data.BEZ, jb_data.KTWRG_TEXT)]
 jb_data['CCY'] = 'USD'
-# jb_data['MKT_VALUE'] = jb_data.KURSWERT_TITWRG # (jb_data.KURSWERT + jb_data.MARCHZINS) / jb_data.UMRECH_KURS # Revisar esto
 jb_data['MKT_VALUE'] = [qty if mkt == 0 and 'CHROME' not in ac else mkt for ac, qty, mkt in zip(jb_data.KURZ_TEXT, jb_data.QUANTITY, jb_data.KURSWERT_TITWRG)]
 jb_data['MKT_VALUE_USD'] = jb_data.KURSWERT + jb_data.MARCHZINS
 jb_data['TOTAL_COST'] = jb_data.BEK
@@ -292,12 +289,12 @@ ct_data['UNIT_COST_CCY'] = ct_data.NOM_CCY_CD
 ct_data['CCY'] = ct_data.ACCT_REF_CCY_CD
 ct_data['MKT_VALUE'] = [-amt if sclas == 'CLS FL18' else amt for amt, sclas in zip(ct_data.NOM_AMT, ct_data.ASSET_SUB_SUB_CLAS_CD)]
 ct_data['MKT_VALUE_USD'] = [-amt if sclas == 'CLS FL18' else amt for amt, sclas in zip(ct_data.MKT_VAL_AMT, ct_data.ASSET_SUB_SUB_CLAS_CD)]
-# ct_data['TOTAL_COST'] = ct_data.REMN_COST_NOM_AMT
 ct_data['TOTAL_COST'] = [amt if 'Western' in des else unt for unt, amt, des in zip(ct_data.REMN_COST_NOM_AMT, ct_data.NOM_AMT, ct_data.FIN_INSTR_LONG_LINE1_DESC.fillna(''))]
 ct_data['UNRELAIZED_GAIN/LOSS'] = ct_data.UREL_GNLS_AMT / ct_data.FX_RT
 ct_data['FXRATE'] = ct_data.FX_RT
 ct_data['EXPOSITION_CCY'] = ct_data.NOM_CCY_CD
 ct_data['Actualizado'] = ct_data.POSN_AS_OF_DT
+ct_data['ACCT'] = ct_data.apply(accounts, axis = 1)
 
 if ct_data.shape[0] != 0:
     data = pd.concat([data, ct_data[main_cols]], axis = 0)
@@ -382,16 +379,11 @@ msy_data['SUB_ASSET_CLASS'] = ''
 msy_data['SHORT_NAME'] = ''
 msy_data['INSTR_ID'] = msy_data.CUSIP.fillna('MSYCASHXX0') + '-' + msy_data.ACCT
 msy_data['DESCRIPTION'] = msy_data.SEC_DESC
-# msy_data['ISIN'] = msy_data.IBAN.combine_first(msy_data.ISIN)
-# msy_data['CUSIP'] = ''
-# msy_data['SYMBOL'] = ''
-# msy_data['QUANTITY'] = [0 if amnt < 0 else amnt for amnt in msy_data.NOMINAL_AMNT]
 msy_data['UNIT_COST'] = msy_data.TOTAL_COST / msy_data.QUANTITY
 msy_data['UNIT_COST_CCY'] = msy_data.CCY
 msy_data['CCY'] = msy_data.CCY
 msy_data['MKT_VALUE'] = msy_data.MKT_LOCAL
 msy_data['MKT_VALUE_USD'] = msy_data.MKT_BASE
-# msy_data['TOTAL_COST'] = msy_data.TOTAL_COST
 msy_data['UNRELAIZED_GAIN/LOSS'] = msy_data.MKT_VALUE_USD - msy_data.TOTAL_COST
 msy_data['FXRATE'] = 1.0
 msy_data['EXPOSITION_CCY'] = msy_data.CCY
@@ -424,7 +416,7 @@ ssz_data['COMPANY'] = ssz_data.PORT_ID.apply(portafolio, col = 'Empresa')
 ssz_data['ASSET_CLASS'] = ''
 ssz_data['SUB_ASSET_CLASS'] = ''
 ssz_data['SHORT_NAME'] = ''
-ssz_data['INSTR_ID'] = ssz_data.ISIN.fillna('SSZLOAN0') + '-' + ssz_data.ACCT #[isin if not isinstance(isin, float) else 'SSZLOAN0' for isin in ssz_data.ISIN]
+ssz_data['INSTR_ID'] = ssz_data.ISIN.fillna('SSZLOAN0') + '-' + ssz_data.ACCT
 ssz_data['DESCRIPTION'] = ssz_data.INSTRUMENT_NAME
 ssz_data['CUSIP'] = ''
 ssz_data['SYMBOL'] = ''
@@ -434,12 +426,12 @@ ssz_data['UNIT_COST_CCY'] = ssz_data.COST_PRICE_CCY
 ssz_data['CCY'] = 'USD'
 ssz_data['MKT_VALUE'] = ssz_data.VALUE_PRICE_CCY
 ssz_data['MKT_VALUE_USD'] = ssz_data.VALUE_PRICE_CCY * ssz_data.FX_RATE
-# ssz_data['TOTAL_COST'] = [namt if 'XS' in isin else namt * price for namt, price, isin in zip(ssz_data.NOMINAL_AMNT, ssz_data.VALUE_PRICE_CCY, ssz_data.INSTR_ID)]
 ssz_data['TOTAL_COST'] = ssz_data.NOMINAL_AMNT * ssz_data.VALUE_PRICE_CCY
 ssz_data['UNRELAIZED_GAIN/LOSS'] = (ssz_data.VALUE_PRICE_CCY - (ssz_data.COST_PRICE * ssz_data.NOMINAL_AMNT)) * ssz_data.FX_RATE
 ssz_data['FXRATE'] = ssz_data.FX_RATE
 ssz_data['EXPOSITION_CCY'] = ssz_data.COST_PRICE_CCY
 ssz_data['Actualizado'] = ssz_data.PROC_DATE
+ssz_data['ACCT'] = ssz_data.apply(accounts, axis = 1)
 
 if ssz_data.shape[0] != 0:
     data = pd.concat([data, ssz_data[main_cols]], axis = 0)
@@ -514,7 +506,6 @@ if ssz_data.shape[0] != 0:
     data.loc[cond5, 'UNRELAIZED_GAIN/LOSS'] = data.loc[cond5, 'MKT_VALUE_USD'] - (data.loc[cond5, 'QUANTITY'] * data.loc[cond5, 'FXRATE'])
     data.loc[cond6, 'UNRELAIZED_GAIN/LOSS'] = data.loc[cond6, 'MKT_VALUE_USD'] - (data.loc[cond6, 'QUANTITY'] * data.loc[cond6, 'UNIT_COST'] / 100 * data.loc[cond6, 'FXRATE'])
     data.loc[cond7, 'TOTAL_COST'] = (data.loc[cond7, 'UNIT_COST'] / 100) * data.loc[cond7, 'QUANTITY']
-# print(data[(data.BANK == 'SSZ')])
 
 # =============================================================================
 #               Verificar si estan todas las cuentas (Corregir esto)
