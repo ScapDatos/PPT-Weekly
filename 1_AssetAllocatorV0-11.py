@@ -9,15 +9,15 @@
 import os
 import re
 import pandas as pd
+from config import PARENT_PATH
 
 # ======================= Actualizaciones manuales ============================
-date = "24072026"     # Fecha de los holdings (Debe coincidir con los holdings guardados)
+date = "14082026"     # Fecha de los holdings (Debe coincidir con los holdings guardados)
 mxnusd = 0.05728      # Tipo de cambio MXN->USD
 eurusd = 1.1721       # Tipo de cambio EUR->USD
 
 # Dirección de tu PC a la nube:
-# contPath = f'C:/Users/DATOS-INVERSIONES/OneDrive/0. Nube Asset Mgmt/Contributtion'
-contPath = 'C:/Users/arnol/OneDrive/0. Nube Asset Mgmt/Contributtion'
+contPath = PARENT_PATH / 'Contributtion'
 
 # Lista que contiene las cuentas que no pueden faltar
 catPortf = pd.read_excel(f'{contPath}/Diccionarios.xlsx', sheet_name = "Cuentas",
