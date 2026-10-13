@@ -2,6 +2,7 @@ import pptx
 import sqlite3
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import plotly.express as px
 from pptx.util import Pt
 from pptx.dml.color import RGBColor
@@ -604,8 +605,11 @@ def un_leveraged(data:pd.DataFrame, path:str, title:str, msrs:tuple[float]|list[
                 label = f'Leverage {port}'
             )
             labels_right.append(f'{y.iloc[-1]:.2f} X')
+            labels_right.append(rf'$\Delta$: {y.iloc[-1] - y.iloc[-2]:.2f}')
             color_list.append('b')
+            color_list.append('w')
             fontc_list.append('w')
+            fontc_list.append('k')
         else:
             ax.fill_between(
                 data.DATE,
@@ -630,6 +634,53 @@ def un_leveraged(data:pd.DataFrame, path:str, title:str, msrs:tuple[float]|list[
     fig.savefig(f'{path}/{title}.png', dpi = 300)
     # plt.show()
 
+def get_lev(db_path:Path|str, port_bnks:dict[str], start_date:str):
+    ports = []
+    for port, banks in port_bnks.items():
+        data = pd.DataFrame({})
+        for idx, bank in enumerate(banks):
+            bnk = get_df(db_path, f'SigCap_{port}.db', list(bank.keys())[0])
+            if idx == 0:
+                bnk = bnk[bnk.DATE > start_date]
+                data['DATE'] = bnk.DATE
+            
+            data = levaumloannet(data, bnk, list(bank.values())[0])
+        data = data.replace([np.nan, np.inf], 0)
+        ports.append(data)
+    # sch, nfd, wk = ports
+
+    return ports
+
+def build_total(sch:pd.DataFrame, nfd:pd.DataFrame, wk:pd.DataFrame):
+    total = pd.DataFrame({})
+    total['DATE'] = nfd.DATE
+
+    total['NET_SCH'] = sch[[col for col in sch.columns if 'NET' in col]].sum(axis = 1)
+    total['NET_NFD'] = nfd[[col for col in nfd.columns if 'NET' in col]].sum(axis = 1)
+    total['NET_WK'] = wk['NET_MS']
+
+    total['LOAN_SCH'] = sch[[col for col in sch.columns if 'LOAN' in col]].sum(axis = 1) * -1
+    total['LOAN_NFD'] = nfd[[col for col in nfd.columns if 'LOAN' in col]].sum(axis = 1) * -1
+    total['LOAN_WK'] = wk['LOAN_MS'] * -1
+
+    for port in ('SCH', 'NFD', 'WK'):
+        total[f'LVRLV_{port}'] = total[f'LOAN_{port}'] / total[f'NET_{port}']
+
+    total['NET'] = total.NET_SCH + total.NET_NFD + total.NET_WK
+    total['LOAN'] = total.LOAN_SCH + total.LOAN_NFD + total.LOAN_WK
+    total['LVRLV'] = total.LOAN / total.NET
+
+    for port in ('SCH', 'NFD', 'WK'):
+        total[f'PCT_{port}'] = total[f'NET_{port}'] / total.NET
+        total[f'PCT_LVR_{port}'] = total[f'LVRLV_{port}'] * total[f'PCT_{port}']
+
+    total['LVR_TOTAL_WEIGHTED'] = total.PCT_LVR_SCH + total.PCT_LVR_NFD + total.PCT_LVR_WK
+
+    for port in ('SCH', 'NFD', 'WK'):
+        total[f'PCT_LVR_{port}_W'] = total[f'PCT_LVR_{port}'] / total.LVRLV
+        total[f'LVR_{port}_W'] = total[f'PCT_LVR_{port}_W'] * total.LVRLV
+
+    return total
 
 ### ======================================================= ###
 ###                         Codigo 6                        ###
@@ -752,8 +803,8 @@ def port_flows(banks:list[str], pathDB:str, port:str, conds:str, condsl:str, hc:
     pfolio[cols_rend] = pfolio[act_rend] / pfolio[act_rend].iloc[0] - 1
     pfolio[cols_sharp] = (pfolio[act_sharp] / pfolio[act_sharp].shift(+1) - 1).fillna(0)
     
-    # pfolio = pfolio[['DATE','REND_AUM','REND_NAV','REND_AUM_SHARP','REND_NAV_SHARP','REND_AUM_WO_EQTS','REND_NAV_WO_EQTS']]
-    # pfolio.columns = names
+    pfolio = pfolio[['DATE','REND_AUM','REND_NAV','REND_AUM_SHARP','REND_NAV_SHARP','REND_AUM_WO_EQTS','REND_NAV_WO_EQTS']]
+    pfolio.columns = names
     
     return pfolio
 
@@ -787,9 +838,10 @@ def ret_data(data:pd.DataFrame, bench:pd.DataFrame, ncols:list[str], acols:list[
     datac[ncols] = bench[acols] / bench[acols].iloc[0] - 1
     datac = datac[['DATE'] + ncols]
     if diffs:
+        diff_label = f'{indexes[0]}vs{indexes[1]}'
         datac['differ'] = datac[indexes[0]] - datac[indexes[1]]
-        datac['DIF_POS'] = datac.differ.clip(lower = 0)
-        datac['DIF_NEG'] = datac.differ.clip(upper = 0)
+        datac[f'{diff_label}_POS'] = datac.differ.clip(lower = 0)
+        datac[f'{diff_label}_NEG'] = datac.differ.clip(upper = 0)
         datac = datac.drop('differ', axis = 1)
     x_ = datac[datac.columns[1:]].iloc[-1].sort_values(ascending = False)
     
@@ -831,39 +883,52 @@ def plot_returns(path:str, title:str, data:pd.DataFrame, x:pd.Series, cols_out:l
     
     for idx, col in enumerate(x.index):
         if col not in cols_out:
-            width = w if col not in cols_in else 6
-            star = '★' if col in cols_in else ''
-            # star = r'$\star$' if col in cols_in else ''
+            is_diff_col = diffs and (col.endswith('_POS') or col.endswith('_NEG'))
+            if is_diff_col:
+                role = 'DIF_POS' if col.endswith('_POS') else 'DIF_NEG'
+                diff_label = col[:-4]
+            else:
+                role = col
+                diff_label = col
             
-            color = colors.loc[colors.LABEL == col, 'COLOR'].values[0]
-            dash = colors.loc[colors.LABEL == col, 'DASH_MLIB'].values[0]
-            font_color = colors.loc[colors.LABEL == col, 'FONT_COLOR'].values[0]
-            vix = True if col == 'VIX' else False
-            note = ',(RHS)' if col == 'VIX' else ''
+            width = w if col not in cols_in else 3
+            star = '★' if col in cols_in else ''
+            
+            color = colors.loc[colors.LABEL == role, 'COLOR'].values[0]
+            dash = colors.loc[colors.LABEL == role, 'DASH_MLIB'].values[0]
+            font_color = colors.loc[colors.LABEL == role, 'FONT_COLOR'].values[0]
+            vix = col == 'VIX'
+            note = ',(RHS)' if vix else ''
             
             target_ax = ax2 if (vix) else ax
             
-            if diffs:
-                if col in ['DIF_NEG', 'DIF_POS']:
-                    ax.fill_between(
-                        data.DATE,
-                        0,
-                        data[col] * 100,
-                        color = color,
-                        lw = 0 #3
-                    )
-                if data.DIF_POS.iloc[-1] != 0 and col == 'DIF_NEG':
-                    continue
+            if is_diff_col:
+                # if col in ['DIF_NEG', 'DIF_POS']:
+                ax.fill_between(
+                    data.DATE,
+                    0,
+                    data[col] * 100,
+                    color = color,
+                    lw = 0 #3
+                )
+                # if data.DIF_POS.iloc[-1] != 0 and col == 'DIF_NEG':
+                # if col.endswith('_NEG') and data[f'{diff_label}_POS'].iloc[-1] != 0:
+                #     continue
             
             target_ax.plot(
                 data.DATE,
                 data[col] * 100,
                 color = color,
-                lw = width if col not in ['DIF_NEG', 'DIF_POS'] else 0,
+                lw = width if not is_diff_col else 0,
                 ls = dash,
-                label = col if col not in ['DIF_NEG', 'DIF_POS'] else None
+                label = None if is_diff_col else col
             )
-            txt = f'{x.index[idx]}{note}, {x.iloc[idx]*100:,.1f}%{star}' if annots else f'{x.iloc[idx]*100:,.1f}%{star}'
+
+            is_zero_diff = is_diff_col and abs(x.iloc[idx]) < 1e-9 and abs(x.iloc[idx]) > -1e-9
+            if is_zero_diff:
+                continue
+
+            txt = f'{diff_label}{note}, {x.iloc[idx]*100:,.1f}%{star}' if annots else f'{x.iloc[idx]*100:,.1f}%{star}'
             labels_right.append(txt)
             color_list.append(color)
             fontc_list.append(font_color)
