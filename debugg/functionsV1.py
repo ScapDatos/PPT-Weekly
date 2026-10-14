@@ -877,7 +877,8 @@ def plot_returns(path:str, title:str, data:pd.DataFrame, x:pd.Series, cols_out:l
     plt.rcParams['axes.xmargin'] = 0
     fig, ax = plt.subplots(figsize=(33/2.54, 16.18/2.54))
     ax2 = ax.twinx() if sec_y else None
-    
+
+    name_map = colors.dropna(subset = 'SUB_LABEL').set_index('LABEL')['SUB_LABEL'].to_dict()
     
     labels_right, color_list, fontc_list = [], [], []
     
@@ -890,6 +891,8 @@ def plot_returns(path:str, title:str, data:pd.DataFrame, x:pd.Series, cols_out:l
             else:
                 role = col
                 diff_label = col
+
+            display_label = name_map.get(diff_label, diff_label)
             
             width = w if col not in cols_in else 3
             star = '★' if col in cols_in else ''
@@ -928,7 +931,8 @@ def plot_returns(path:str, title:str, data:pd.DataFrame, x:pd.Series, cols_out:l
             if is_zero_diff:
                 continue
 
-            txt = f'{diff_label}{note}, {x.iloc[idx]*100:,.1f}%{star}' if annots else f'{x.iloc[idx]*100:,.1f}%{star}'
+            # txt = f'{diff_label}{note}, {x.iloc[idx]*100:,.1f}%{star}' if annots else f'{x.iloc[idx]*100:,.1f}%{star}'
+            txt = f'{display_label}{note}, {x.iloc[idx]*100:,.1f}%{star}' if annots else f'{x.iloc[idx]*100:,.1f}%{star}'
             labels_right.append(txt)
             color_list.append(color)
             fontc_list.append(font_color)
