@@ -364,7 +364,8 @@ else:
 msy_query = f"""
             SELECT
                 ACCT, SEC_DESC, ISIN, CUSIP, SYMBOL, QUANTITY,
-                CCY, MKT_LOCAL, MKT_BASE, TOTAL_COST, POS_DT
+                CCY, MKT_LOCAL, MKT_BASE, TOTAL_COST, POS_DT,
+                LONGSHORT_IND
             FROM POSITION
             WHERE POS_DT = '{DATE}';
             """
@@ -388,6 +389,9 @@ msy_data['UNRELAIZED_GAIN/LOSS'] = msy_data.MKT_VALUE_USD - msy_data.TOTAL_COST
 msy_data['FXRATE'] = 1.0
 msy_data['EXPOSITION_CCY'] = msy_data.CCY
 msy_data['Actualizado'] = msy_data.POS_DT
+
+msy_data.loc[msy_data['LONGSHORT_IND'] == 'wd', 'MKT_VALUE'] = -msy_data.MKT_LOCAL
+msy_data.loc[msy_data['LONGSHORT_IND'] == 'wd', 'MKT_VALUE_USD'] = -msy_data.MKT_BASE
 
 if msy_data.shape[0] != 0:
     data = pd.concat([data, msy_data[main_cols]], axis = 0)
@@ -555,8 +559,7 @@ df_ltv['LOAN'] = df_ltv['LOAN'].astype('float64')
 df_ltv['LTV'] = df_ltv['LTV'].astype('float64')
 df_ltv['LTV-LOAN'] = df_ltv['LTV-LOAN'].astype('float64')
 
-# with pd.ExcelWriter(f'{path_pc}/Contributtion/temp/Assets_Full/{DATE}-ASSET_ALLOC_PRUEBA.xlsx', engine = "openpyxl") as writer:
-with pd.ExcelWriter(PARENT_PATH / 'Contributtion' / 'temp' / 'Assets_Full' / f'{DATE}-ASSET_ALLOC_PRUEBA.xlsx', engine = "openpyxl") as writer:
+with pd.ExcelWriter(PARENT_PATH / 'Contributtion' / f'{DATE}-ASSET_ALLOC.xlsx', engine = "openpyxl") as writer:
     # Crea la primer hoja de datos
     data.to_excel(writer, sheet_name = "CONSOLIDADO", index = False)
     # Crea la segunda hoja de datos
