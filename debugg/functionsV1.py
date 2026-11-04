@@ -254,6 +254,25 @@ def filling_banks(conn:sqlite3.connect, bnk:str, date:str):
         
         return bnk
 
+def safe_loc(df:pd.DataFrame, key:str, col:str, default:float = 0.0):
+    """
+    """
+    try:
+        return df.loc[key, col]
+    except KeyError:
+        print(f'[WARNING] No hay datos para {key}. Revisar en caso de error')
+        return default
+
+def known_bank_names(conn):
+    tables = pd.read_sql_query('SELECT name FROM sqlite_master WHERE type = "table";', conn)
+    banks = set()
+    for table in tables.name:
+        if len(table) == 3:
+            cols = {row[1] for row in conn.execute(f'PRAGMA table_info({table});')}
+            if {'AUMS', 'NAV'} <= cols:
+                banks.add(table)
+
+    return banks
 
 ### ======================================================= ###
 ###                         Codigo 4                        ###

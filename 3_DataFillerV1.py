@@ -4,14 +4,22 @@
 ### ============================================= ###
 
 import sqlite3
+import argparse
 import pandas as pd
 from config import DATE, MXNUSD, EURUSD, PARENT_PATH
-from debugg.functions import del_record, insert_vals, update_vals, filling_blanks, filling_banks
+from debugg.functionsV1 import del_record, insert_vals, update_vals, filling_blanks, filling_banks, safe_loc, known_bank_names
+
+def parse_args():
+    p = argparse.ArgumentParser(description = 'Fill databases in SQLite')
+    p.add_argument('--drop', action = 'store_true',
+                   help = 'Delete every row for --date instead of loading.')
+    return p.parse_args()
+
+args = parse_args()
 
 dt = (pd.to_datetime(DATE, format = '%Y-%m-%d') - pd.Timedelta(days = 6)).strftime('%Y-%m-%d')
 
 path_to_db = PARENT_PATH / 'DATOS' / 'Bases de Datos'
-drop = True
 
 atypes = {
     'CASH': 'CASH', 'LIQUIDITY': 'LQDTY', 'EQUITIES': 'EQTS', 'FIXED INCOME': 'FIX_INC',
@@ -39,13 +47,14 @@ portfs = asset_aux.groupby(['PORTFOLIO', 'BANK', 'ACCT'])
 ### ============================================================================ ###
 ###                               LLENADO DE TABLAS                              ###
 ### ============================================================================ ###
-if drop:
+if args.drop:
     del_record(path_to_db, DATE)
     exit()
 
-dbs = []
+seen_banks = {'SCH': set(), 'NFD': set(), 'WK': set()}
 bnk_port = {'NFD': [], 'SCH': [], 'WK': []}
 for (port, bank, acct), group in portfs:
+    seen_banks[port].add(bank)
     with sqlite3.connect(f'{path_to_db}/SigCap_{port}.db') as conn:
         if acct in loan_acct:
             acct = '3762' if acct == '3762L' else acct
@@ -66,7 +75,7 @@ for (port, bank, acct), group in portfs:
             dw_acct = dw[(dw.BANK == bank) & (dw.ACCT == acct)].reset_index(drop = True)
             dw_types = {}
             if not dw_acct.empty:
-                multipliers = {'EUR': asset_aux['EURUSD'].iloc[0], 'MXN': asset_aux['MXNUSD'].iloc[0]}
+                multipliers = {'EUR': EURUSD, 'MXN': MXNUSD}
                 dw_acct['AMMOUNT'] = dw_acct.apply(lambda x: x.AMMOUNT * multipliers.get(x.CURRENCY, 1), axis = 1)
                 dw_acct['CURRENCY'] = 'USD'
                 dw_types = dw_acct.groupby("TYPE")["AMMOUNT"].sum().round(2).to_dict()
@@ -76,35 +85,30 @@ for (port, bank, acct), group in portfs:
             values += [sum(values[1:]), dw_types.get('DEPS', 0.0), dw_types.get('WDRS', 0.0)]
             insert_vals(conn, data, f'{bank}{acct}', DATE, values)
 
-for (port, bank, acct), group in portfs:
-    with sqlite3.connect(f'{path_to_db}/SigCap_{port}.db') as conn:    
-        # Filling blanks
-        if f'SigCap_{port}.db' not in dbs:
-            filling_blanks(conn, dw, DATE)
-            dbs.append(f'SigCap_{port}.db')
-        
-        if bank not in bnk_port['SCH'] and port == 'SCH':
+for port in bnk_port:
+    with sqlite3.connect(f'{path_to_db}/SigCap_{port}.db') as conn:
+        filling_blanks(conn, dw, DATE)
+
+        known = known_bank_names(conn)
+        for bank in sorted(seen_banks[port] | known):
+            # if bank not in seen_banks[port]:
+            #     print(f'[WARNING] {bank} no esta en el ASSET, revisar en caso de error.') ## COMENTARIO DE WARNING, ANADIRLO SI SE CONSIDERA NECESARIO
             bnk = filling_banks(conn, bank, DATE)
             if bnk is not None:
                 bnk_port[port].append(bnk)
-        if bank not in bnk_port['NFD'] and port == 'NFD':
-            bnk = filling_banks(conn, bank, DATE)
-            bnk_port[port].append(bnk)
-        if bank not in bnk_port['WK'] and port == 'WK':
-            bnk = filling_banks(conn, bank, DATE)
-            bnk_port[port].append(bnk)
 
 bnk_port['SCH'].append('BNK1135')
 
 ### =========================================== ###
 ###            LLENADO DE TABLAS NAV            ###
 ### =========================================== ###
-for db, port in zip(dbs, bnk_port):
+for port, banks in bnk_port.items():
     aux = {}
+    db = f'SigCap_{port}.db'
     with sqlite3.connect(f'{path_to_db}/{db}') as conn:
         cursor = conn.cursor()
         
-        for table in bnk_port[port]:
+        for table in banks:
             df = pd.read_sql_query(f'SELECT * FROM {table} ORDER BY DATE DESC LIMIT 5;', conn)
             aux[table] = float(df[df.DATE == DATE].NAV.iloc[0]) if table != 'BNK1135' else float(df[df.DATE == DATE].AUMS.iloc[0])
     
@@ -129,7 +133,13 @@ with sqlite3.connect(f'{path_to_db}/SigCap.db') as conn:
     loan = asset[asset.SYMBOL == 'LOAN_MXN'][['PORTFOLIO', 'SYMBOL', 'MKT_VALUE_USD']].groupby('SYMBOL').sum()
     
     nav_city = pd.read_sql_query('SELECT * FROM HCITY ORDER BY DATE DESC LIMIT 5;', conn)
-    values = [DATE, hcity.loc['SCH', 'MKT_VALUE_USD'], hcity.loc['NFD', 'MKT_VALUE_USD'], loan.loc['LOAN_MXN', 'MKT_VALUE_USD'], 0.0, 0.0, 'NO']
+    values = [
+        DATE,
+        safe_loc(hcity, 'SCH', 'MKT_VALUE_USD'),
+        safe_loc(hcity, 'NFD', 'MKT_VALUE_USD'),
+        safe_loc(loan, 'LOAN_MXN', 'MKT_VALUE_USD'),
+        0.0, 0.0, 'NO'
+    ]
     insert_vals(conn, nav_city, 'HCITY', DATE, values)
     
     ## TABLA UNI ##
@@ -141,10 +151,17 @@ with sqlite3.connect(f'{path_to_db}/SigCap.db') as conn:
     
     ## TABLA NOTAS_NOMINAL_NFD ##
     nts = asset[(asset.ASSET_CLASS == 'STRUCTURED NOTES') & (asset.PORTFOLIO == 'NFD')][['BANK', 'EXPOSITION_CCY', 'QUANTITY']]
+    nts['EXPOSITION_CCY'] = nts.EXPOSITION_CCY.astype(str).str.strip()
     nts = nts.groupby(['BANK', 'EXPOSITION_CCY']).sum()
     
     notas = pd.read_sql_query('SELECT * FROM NOTAS_NOMINAL_NFD ORDER BY DATE DESC LIMIT 5;', conn)
     
-    values = [DATE, nts.loc[('CTI', 'USD'), 'QUANTITY'], nts.loc[('JBR', 'USD  '), 'QUANTITY'], ### CORREGIR QUE ESTO NO SEA MANUAL
-              nts.loc[('JBR', 'EUR  '), 'QUANTITY'], nts.loc[('SSZ', 'USD'), 'QUANTITY'], 0.0]
+    values = [
+        DATE,
+        safe_loc(nts, ('CTI', 'USD'), 'QUANTITY'),
+        safe_loc(nts, ('JBR', 'USD'), 'QUANTITY'),
+        safe_loc(nts, ('JBR', 'EUR'), 'QUANTITY'),
+        safe_loc(nts, ('SSZ', 'USD'), 'QUANTITY'),
+        0.0
+    ]
     insert_vals(conn, notas, 'NOTAS_NOMINAL_NFD', DATE, values)
