@@ -12,9 +12,9 @@ import pandas as pd
 from config import PARENT_PATH
 
 # ======================= Actualizaciones manuales ============================
-date = "14082026"     # Fecha de los holdings (Debe coincidir con los holdings guardados)
-mxnusd = 0.05728      # Tipo de cambio MXN->USD
-eurusd = 1.1721       # Tipo de cambio EUR->USD
+date = "25092026"     # Fecha de los holdings (Debe coincidir con los holdings guardados)
+mxnusd = 0.05655      # Tipo de cambio MXN->USD
+eurusd = 1.1391       # Tipo de cambio EUR->USD
 
 # Dirección de tu PC a la nube:
 contPath = PARENT_PATH / 'Contributtion'
