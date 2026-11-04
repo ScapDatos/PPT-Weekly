@@ -1,30 +1,36 @@
 import re
-# import numpy as np
+import argparse
 import pandas as pd
 from pathlib import Path
 
+def parse_args():
+    p = argparse.ArgumentParser(description = 'Extract coupons from PBI DB')
+    p.add_argument('--file-format', type = str,
+                   help = 'File format of the PBI DB, for example: 20261019-26')
+    return p.parse_args()
+
+args = parse_args()
+
 PATH = Path.home() / 'OneDrive' / '0. Nube Asset Mgmt'
-drange = '20260804-10'
+drange = args.file_format
 
 data = pd.read_excel(PATH / 'Cotizaciones' / f'Raw_{drange}.xlsx')
-# data = pd.read_excel(f'{path}/Cotizaciones/Raw_{drange}.xlsx')
-# data = data.dropna(ignore_index = True)
-data['fecDate'] = data.fecDate.apply(pd.to_datetime, errors = 'coerce')
+data['Date'] = data.Date.apply(pd.to_datetime, errors = 'coerce')
 
 def quotes(path:str, quotes:pd.DataFrame, ccy:str):
-    notas = pd.read_excel(f'{path}/Notas Estructuradas/Notas_Template.xlsx', sheet_name = f'CUPONES {ccy}', engine = 'openpyxl').T.reset_index()
+    notas = pd.read_excel(f'{path}/Notas Estructuradas/Notas Presentación (New).xlsx', sheet_name = f'CUPONES {ccy}', engine = 'openpyxl').T.reset_index()
     cols = [f'Date_{i+1}' for i in range(len(notas.columns))]
     notas.columns = cols
     
     notas['Date_1'] = notas.Date_1.apply(lambda x: re.sub(r'\.\d+$', '', x))
     notas['Date_1'] = notas.Date_1.str.replace('B-', '')
     
-    single = quotes[quotes['Basket Type'] == 'Single'][['Barrier', 'Basket', 'Coupon PA']].reset_index(drop = True)
+    single = quotes[quotes['Type'] == 'Single'][['Barrier', 'Basket', 'Coupon PA']].reset_index(drop = True)
     single['Basket'] = single.Basket.str.split().str[0]
     single['Barrier'] = 100 - single.Barrier.str.replace(',00%', '').astype(int)
     single['Barrier'] = single['Barrier'].astype(str) + '%'
     
-    wof = quotes[quotes['Basket Type'] == 'WoF'][['Barrier', 'Basket', 'Coupon PA']].reset_index(drop = True)
+    wof = quotes[quotes['Type'] == 'WoF'][['Barrier', 'Basket', 'Coupon PA']].reset_index(drop = True)
     wof['Basket'] = wof.Basket.str.replace('; ', '|')
     wof['Barrier'] = 100 - wof.Barrier.str.replace(',00%', '').astype(int)
     wof['Barrier'] = wof['Barrier'].astype(str) + '%'
@@ -65,10 +71,10 @@ def quotes(path:str, quotes:pd.DataFrame, ccy:str):
                 col = f"{wofs['Basket']}-{wofs['Barrier']}"
                 data.loc[0, col] = wofs['Coupon PA']
     
-    data.insert(0, 'Date', quotes.fecDate.iloc[0])
+    data.insert(0, 'Date', quotes.Date.iloc[0])
     return data
 
-groups = data.groupby(['fecDate', 'Currency'])
+groups = data.groupby(['Date', 'Currency'])
 
 usd = []
 eur = []
