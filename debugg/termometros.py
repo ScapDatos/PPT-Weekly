@@ -13,12 +13,11 @@ def windor(df:pd.DataFrame, cols:list[str], limits:tuple = (0.05, 0.05)):
     
     return df_cpy
 
-
 def term_plots(data:pd.DataFrame, file_name:str, path):
     data['Date'] = pd.to_datetime(data.Date)
     data[data.columns[1:]] = data[data.columns[1:]].astype(float, errors = 'ignore') # REVISAR LOS ERRORES CUANDO SON #NA #NA
 
-    indexes = ['SPX', 'NDX', 'SX5E', 'RTY']
+    indexes = ['SPX', 'NDX', 'SX5E', 'RTY', 'NKY']
 
     for index in indexes:
         plt.rcParams['axes.xmargin'] = 0
@@ -113,6 +112,6 @@ for idx, file in enumerate(FILES):
         fname = 'FwdPE'
     
     data = pd.read_excel(path, sheet_name = 'PE', skiprows = 2)
-    data = data.rename(columns = {'Unnamed: 1': 'Date'}).drop('Unnamed: 0', axis = 1)[['Date', 'SPX Index', 'NDX Index', 'RTY Index', 'SX5E Index']][:5220]
+    data = data.rename(columns = {'Unnamed: 1': 'Date'}).drop('Unnamed: 0', axis = 1)[['Date', 'SPX Index', 'NDX Index', 'RTY Index', 'SX5E Index', 'NKY Index']][:5220]
 
     term_plots(data, fname, PATH)
