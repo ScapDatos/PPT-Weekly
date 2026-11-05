@@ -41,6 +41,3 @@ dist/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
-
-# Archivos Python
-config.py
