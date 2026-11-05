@@ -8,6 +8,7 @@ from pptx.util import Pt
 from pptx.dml.color import RGBColor
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 
 ### ======================================================= ###
 ###                     General Functions                   ###
@@ -1235,3 +1236,214 @@ def dxy_plot(path:str, qty_nts:int, ser:pd.DataFrame, colors:pd.DataFrame, xTick
     fig.savefig(f'{path}/{qty_nts}.png', dpi = 300)
     plt.close()
     # plt.show()
+
+### ======================================================= ###
+###                         Codigo 9                        ###
+### ======================================================= ###
+
+def slide_look(ppt:pptx.Presentation, num_slide:int, img_path:str, txt:str):
+    """
+    Descript:
+        Inserta las imagenes dentro de la diapositivamente, especificamente las imagenes de profundidad.
+    
+    Args:
+        ppt (pptx.Presentation): Objeto de tipo pptx para escribir sobre la presentacion desde Python.
+        num_slide (int): Numero de diapositiva en donde se quiere agregar informacion.
+        img_path (str): Ruta a la imagen que se quiere insertar en la diapositiva.
+        txt (str): Texto al pie de la diapositiva.
+    Returns:
+        (None) Imagenes insertadas en la diapositiva.
+    """
+    lamina_n = ppt.slides[num_slide]
+    placeholder = lamina_n.placeholders[13]
+    placeholder.insert_picture(img_path)
+    placeholder = lamina_n.placeholders[15]
+    placeholder.text = txt
+
+def tab_rend(table, contri:pd.DataFrame, wklyc:float, mv_old:float, mv_new:float):
+    if wklyc > 0:
+        color = RGBColor(0, 134, 61)
+        pos = contri.head(2).reset_index(drop = True)
+    else:
+        color = RGBColor(192, 0, 0)
+        pos = contri.tail(2).reset_index(drop = True)
+
+    for idx, col in pos.iterrows():
+        row = idx + 1
+        clr = RGBColor(0, 134, 61) if col['Weekly Change $'] > 0 else RGBColor(192, 0, 0)
+
+        table.cell(row, 0).text = col.SHORT_NAME
+        table.cell(row, 1).text = f'{col.MKT_VALUE_USD_OLD:,.2f}'
+        table.cell(row, 2).text = f'{col.MKT_VALUE_USD_NEW:,.2f}'
+        table.cell(row, 3).text = f'${col['Weekly Change $']:,.1f}'
+        table.cell(row, 4).text = f'{col.Contribution:.2%}'
+
+        for r in [3, 4]:
+            cell = table.cell(row, r)
+            for paragraph in cell.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    run.font.color.rgb = clr
+    
+    table.cell(3, 1).text = f'{mv_old:,.2f}'    
+    table.cell(3, 2).text = f'{mv_new:,.2f}'
+    table.cell(3, 3).text = f'${wklyc:,.1f}'
+    table.cell(3, 4).text = f'{wklyc / mv_old:.2%}'
+
+    for i in range(1, 4):
+        for j in range(5):
+            if (i, j) == (3, 0):
+                continue
+            cell = table.cell(i, j)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            for paragraph in cell.text_frame.paragraphs:
+                paragraph.alignment = PP_ALIGN.CENTER
+                for run in paragraph.runs:
+                    run.font.size = Pt(9)
+                    run.font.name = 'Calibri'
+
+                    if i == 3:
+                        run.font.bold = True
+                        if j in [3, 4]:
+                            run.font.color.rgb = color
+
+def tab_gen_port(table, contri:pd.DataFrame, mkt_old:float, mkt_new:float, wkly:float):
+    groups = contri.groupby(['BANK'])[['MKT_VALUE_USD_OLD', 'MKT_VALUE_USD_NEW', 'Weekly Change $', 'Contribution']]
+    color = RGBColor(0, 134, 61) if wkly > 0 else RGBColor(192, 0, 0)
+
+    banks = {}
+    for bank, group in groups:
+        wkly_chng = group['Weekly Change $'].sum()
+        mv_old = group.MKT_VALUE_USD_OLD.sum()
+        mv_new = group.MKT_VALUE_USD_NEW.sum()
+        contrib = wkly_chng / mkt_old
+        clr = RGBColor(0, 134, 61) if wkly_chng > 0 else RGBColor(192, 0, 0)
+        banks[bank] = {'MKT_OLD': mv_old, 'MKT_NEW': mv_new, 'PL': wkly_chng, 'CONT': contrib, 'COLOR': clr}
+
+    banks = dict(
+        sorted(banks.items(), key = lambda x: x[1]['CONT'], reverse = True)
+    )    
+    
+    for idx, (key, val) in enumerate(banks.items()):
+        row = idx + 1
+        
+        table.cell(row, 0).text = key[0]
+        table.cell(row, 1).text = f'{val['MKT_OLD']:,.2f}'
+        table.cell(row, 2).text = f'{val['MKT_NEW']:,.2f}'
+        table.cell(row, 3).text = f'${val['PL']:,.1f}'
+        table.cell(row, 4).text = f'{val['CONT']:.2%}'
+
+        for j in [3, 4]:
+            cell = table.cell(row, j)
+            for paragraph in cell.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    run.font.color.rgb = val['COLOR']
+    
+    table.cell(7, 1).text = f'{mkt_old:,.2f}'    
+    table.cell(7, 2).text = f'{mkt_new:,.2f}'
+    table.cell(7, 3).text = f'${wkly:,.2f}'
+    table.cell(7, 4).text = f'{wkly / mkt_old:.2%}'
+
+    for i in range(1, 8):
+        for j in range(5):
+            if (i, j) == (7, 0):
+                continue
+            cell = table.cell(i, j)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            for paragraph in cell.text_frame.paragraphs:
+                paragraph.alignment = PP_ALIGN.CENTER
+                for run in paragraph.runs:
+                    run.font.size = Pt(9)
+                    run.font.name = 'Calibri'
+
+                    if i == 7:
+                        run.font.bold = True
+                        if j in [3, 4]:
+                            run.font.color.rgb = color
+
+def slide_area(path:str, ppt:pptx.Presentation, num_slide:int, df:pd.DataFrame, img_path:str, serie:str = 'NAV',
+               sheetname:str = 'x', txt:str = None, rends: bool = False, port_r:bool = False):
+    """
+    Descript:
+        Inserta cuadros de texto, imagenes y pie de diapositiva dentro de la presentacion.
+    
+    Args:
+        path (str): Ruta hacia donde se debe guardar el archivo generado.
+        ppt (pptx.Presentation): Objeto de tipo pptx para escribir sobre la presentacion desde Python.
+        num_slide (int): Numero de diapositiva en donde se quiere agregar informacion.
+        df (DataFrame): Datos para agregar el aumento o disminucion del portafolio semana a semana.
+        img_path (str): Ruta a la imagen que se quiere insertar en la diapositiva.
+        serie (str)(default = 'NAV'): Columna a considerar para la comparacion de rendimiento.
+        sheetname (str)(default = 'x'): Nombre de la hoja del archivo Contribution para usar los datos.
+        txt(str)(Optional): Texto al pie de la diapositiva.
+    Returns:
+        (None) Informacion insertada dentro de la diapositiva.
+    """
+    actual = f'${df[serie].iloc[-1]:,.1f}'
+    dif1w = f'${df[serie].iloc[-1] - df[serie].iloc[-2]:,.1f}'
+    
+    lamina_n = ppt.slides[num_slide]
+    tabla = lamina_n.shapes[3].table
+    
+    tabla.cell(0, 1).text = actual
+    tabla.cell(1, 1).text = dif1w
+    
+    tabla.cell(0, 1).text_frame.paragraphs[0].runs[0].font.size = Pt(16)
+    tabla.cell(1, 1).text_frame.paragraphs[0].runs[0].font.size = Pt(16)
+    
+    trend = ''
+    
+    if df[serie].iloc[-1] - df[serie].iloc[-2] > 0:
+        tabla.cell(1, 1).text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(24, 127, 61)
+        trend = 'up'
+    elif df[serie].iloc[-1] - df[serie].iloc[-2] < 0:
+        tabla.cell(1, 1).text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(192, 0, 0)
+        trend = 'down'
+    else:
+        tabla.cell(1, 1).text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
+        
+    if sheetname != 'x':
+        cont = pd.read_excel(f'{path}/Contributtion/Contribution_Weekly.xlsx', sheet_name = sheetname)
+        wkly_chng = cont['Weekly Change $'].sum()
+        mkt_val_old = cont.MKT_VALUE_USD_OLD.sum()
+        mkt_val_new = cont.MKT_VALUE_USD_NEW.sum()
+
+        if port_r:
+            tab = tab = lamina_n.shapes[5].table
+            tab_gen_port(tab, cont, mkt_val_old, mkt_val_new, wkly_chng)
+
+        cont = cont[~cont.ASSET_CLASS.isin(['LIQUIDITY', 'CASH', 'COLATERAL', 'CREDITO'])].dropna(subset = ['QUANTITY_NEW', 'QUANTITY_OLD'])
+
+        if rends:
+            tab = lamina_n.shapes[5].table
+            tab_rend(tab, cont, wkly_chng, mkt_val_old, mkt_val_new)
+
+        # Coloca el texto del valor actual en las celda 0,1 y 1,1 de la tabla
+        if trend == 'up':
+            cont = cont.sort_values('Contribution', ascending = False, ignore_index = True)
+            tabla2 = lamina_n.shapes[4].table
+            if cont.ASSET_CLASS.iloc[0] == 'EQUITIES':
+                peso='$'
+            else:
+                peso=''
+            tabla2.cell(0, 0).text = f'▲ {peso}{cont.SHORT_NAME.iloc[0]}'
+            tabla2.cell(0,0).text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(24, 127, 61)
+            tabla2.cell(0,0).text_frame.paragraphs[0].runs[0].font.size = Pt(14)
+        elif trend=='down':
+            cont = cont.sort_values('Contribution', ascending = True, ignore_index = True)
+            tabla2 = lamina_n.shapes[4].table
+            if cont.ASSET_CLASS.iloc[0] == 'EQUITIES':
+                peso='$'
+            else:
+                peso=''
+            tabla2.cell(0,0).text = f'▼ {peso}{cont.SHORT_NAME.iloc[0]}'
+            tabla2.cell(0,0).text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(192, 0, 0)
+            tabla2.cell(0,0).text_frame.paragraphs[0].runs[0].font.size = Pt(14)
+        else:
+            tabla2 = lamina_n.shapes[4].table
+            tabla2.cell(0,0).text = 'Sin cambios'
+            tabla2.cell(0,0).text_frame.paragraphs[0].runs[0].font.size = Pt(14)
+
+    placeholder = lamina_n.placeholders[13]
+    placeholder.insert_picture(img_path)
+    placeholder = lamina_n.placeholders[15]
+    placeholder.text = txt

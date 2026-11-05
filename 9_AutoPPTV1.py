@@ -8,7 +8,7 @@ from os import listdir
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from config import DATE, PARENT_PATH
-from debugg.functions import get_df, slide_look, slide_area
+from debugg.functionsV1 import get_df, slide_look, slide_area
 
 # ppt_date = "12062026"
 # ppt_datetime = pd.to_datetime(ppt_date, format = '%d%m%Y')
@@ -95,7 +95,7 @@ nslide += 1         # Diapositiva 13 - Separador SC Holdings
 
 nslide += 1         # Diapositiva 14 - SCH | 2014-2024 (dolares)
 df = get_df(path_to_db, 'SigCap.db', 'PORT_SCH_NAV')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SCHOLDINGS.png', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SCHOLDINGS.png', sheetname = 'SCH', txt = foot_note, port_r = True)
 
 nslide += 1         # Diapositiva 15 - SCH | 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SCHOLDINGS12M.png', txt = foot_note)
@@ -157,7 +157,7 @@ nslide += 1         # Diapositiva 29 - SCH Goldman Sachs 2024-2025 (dolares)
 nslide += 1         # Diapositiva 30 - Separador UBS
 nslide += 1         # Diapositiva 31 - SCH | UBS 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'UBS')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH.png', sheetname = 'SCHUBS', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH.png', sheetname = 'SCHUBS', txt = foot_note, rends = True)
 
 nslide += 1         # Dipaositiva 32 - SCH | UBS 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH12M.png', txt = foot_note)
@@ -165,7 +165,7 @@ slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH12M.pn
 nslide += 1         # Diapositiva 33 - Separador Morgan Stanley
 nslide += 1         # Diapositiva 34 - SCH | Morgan Stanley 2014-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'MSY')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS.png', sheetname = 'SCHMSY', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS.png', sheetname = 'SCHMSY', txt = foot_note, rends = True)
 
 nslide += 1         # Diapositiva 35 - SCH | Morgan Stanley 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS12M.png', txt = foot_note)
@@ -173,7 +173,7 @@ slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS12M.png', 
 nslide += 1         # Diapositiva 36 - Separador Santander Suiza
 nslide += 1         # Diapositiva 37 - SCH | Santander Suiza 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'SSZ')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SS12M.png', sheetname = 'SCHSSZ', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SS12M.png', sheetname = 'SCHSSZ', txt = foot_note, rends = True)
 
 nslide += 1         # Diapositiva 38 - SCH | Santander Suiza 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SS.png', txt = foot_note)
@@ -185,7 +185,7 @@ placeholder.text = foot_note
 nslide += 1         # Diapositiva 40 - Separador Deutsche Bank
 nslide += 1         # Diapositiva 41 - SCH | Deutsche Bank 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'DBK')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB.png', sheetname = 'SCHDBK', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB.png', sheetname = 'SCHDBK', txt = foot_note, rends = True)
 
 nslide += 1         # Diapositiva 42 - SCH | Deutsche Bank 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB12M.png', txt = foot_note)
@@ -193,7 +193,7 @@ slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB12M.png', 
 nslide += 1         # Diapositiva 43 - Separador JP Morgan
 nslide += 1         # Diapositiva 44 - SCH | JP Morgan 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'JPM')
-slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JPM.png', sheetname = 'SCHJPM', txt = foot_note)
+slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JPM.png', sheetname = 'SCHJPM', txt = foot_note, rends = True)
 
 nslide += 1         # Diapositiva 45 - SCH | JP Morgan 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JPM12M.png', txt = foot_note)

@@ -1110,45 +1110,6 @@ def plot_diffs(path:str, title:str, data:pd.DataFrame, colors:pd.DataFrame, xsys
 ### ======================================================= ###
 ###                         Codigo 7                        ###
 ### ======================================================= ###
-# def asset_metrics(data:pd.DataFrame, dataVS:pd.DataFrame, mkt_sum:float):
-#     """
-#     Descript:
-#         Calcula todas las metricas para la creacion del archivo Contribution.
-    
-#     Args:
-#         data (DataFrame): Datos del Asset actual.
-#         dataVS (DataFrame): Datos del Asset de la semana inmediata anterior.
-#         mkt_sum (float): Suma del Market Value de la semana inmediata anterior.
-#     Returns:
-#         pd.DataFrame
-#     """
-#     df_ = pd.DataFrame(columns = ['BANK', 'ACCT', 'ASSET_CLASS', 'TOTAL_COST', 'DESCRIPTION', 'SHORT_NAME',
-#                                   'LTV %', 'PRICE_NEW', 'QUANTITY_NEW', 'PRICE_OLD', 'QUANTITY_OLD'])
-#     acs = data.ACCT.unique().tolist() + dataVS.ACCT.unique().tolist()
-#     res = []
-#     # for acc in data.ACCT.unique():
-#     for acc in acs:
-#         df_aux = dataVS[dataVS.ACCT == acc]
-#         result = pd.merge(data[data.ACCT == acc], df_aux[['DESCRIPTION', 'QUANTITY', 'MKT_VALUE_USD', 'PRICE']],
-#                           on = 'DESCRIPTION', suffixes = ('_NEW', '_OLD'), how = 'outer') # 15/04/2026 se agrego el param."how"
-#         res.append(result)
-    
-#     df_ = pd.concat(res, axis = 0, ignore_index = True)    
-#     df_['LTV $'] = round(df_['LTV %'] * df_.MKT_VALUE_USD_NEW, 5)
-#     df_['Return'] = round(df_.PRICE_NEW / df_.PRICE_OLD - 1, 5)
-#     df_['Weight'] = round(df_.MKT_VALUE_USD_OLD / mkt_sum, 3)
-#     df_['Contribution'] = round(df_.Weight * df_.Return, 5)
-#     df_['PPP'] = abs(round(df_.TOTAL_COST / df_.QUANTITY_NEW, 1))
-#     df_['Weekly Change $'] = round(df_.MKT_VALUE_USD_NEW - df_.MKT_VALUE_USD_OLD, 2)
-#     df_['P&L $'] = round(df_.MKT_VALUE_USD_NEW - abs(df_.TOTAL_COST), 1)
-#     df_['P&L %'] = round(df_['P&L $'] / df_.TOTAL_COST, 3)
-    
-#     df_['P&L %'] = df_['P&L %'].apply(lambda x: 0 if (x == np.inf) or (x == -np.inf) else x)
-    
-#     df_ = df_.drop('BANK', axis = 1).sort_values('Contribution', ascending = False)
-    
-#     return df_
-
 def asset_metrics(data:pd.DataFrame, dataVS:pd.DataFrame, mkt_sum:float):
     """
     Descript:
@@ -1254,16 +1215,13 @@ def process_portfs(data:pd.DataFrame, dataVS:pd.DataFrame, port:str, path:str, n
     Returns:
         dict
     """
-    df = data[(data.PORTFOLIO == port) & (~data.BANK.isin(['BVA', 'BNK', '-']))]
-    dfVS = dataVS[(dataVS.PORTFOLIO == port) & (~dataVS.BANK.isin(['BVA', 'BNK', '-']))]
+    # df = data[(data.PORTFOLIO == port) & (~data.BANK.isin(['BVA', 'BNK', '-']))]
+    # dfVS = dataVS[(dataVS.PORTFOLIO == port) & (~dataVS.BANK.isin(['BVA', 'BNK', '-']))]
+    df = data[(data.PORTFOLIO == port) & (~data.BANK.isin(['BVA', '-']))]
+    dfVS = dataVS[(dataVS.PORTFOLIO == port) & (~dataVS.BANK.isin(['BVA','-']))]
     
     mkt_last = dfVS.MKT_VALUE_USD.sum()
-    
-    # df = df[(df.ASSET_CLASS != 'LIQUIDITY') & (df.ASSET_CLASS != 'CASH')]
-    # dfVS = dfVS[(dfVS.ASSET_CLASS != 'LIQUIDITY') & (dfVS.ASSET_CLASS != 'CASH')]
-    
-    # cols = ['ACCT', 'SHORT_NAME', 'DESCRIPTION', 'ASSET_CLASS', 'LTV %', 'LTV $', 'QUANTITY_OLD', 'QUANTITY_NEW', 'PRICE_OLD', 'PRICE_NEW',
-    #         'MKT_VALUE_USD_NEW', 'Weight', 'PPP', 'TOTAL_COST', 'Weekly Change $', 'Return', 'Contribution', 'P&L %', 'P&L $']
+
     cols = ['BANK', 'ACCT', 'INSTR_ID', 'SHORT_NAME', 'DESCRIPTION', 'ASSET_CLASS', 'LTV %', 'LTV $', 'QUANTITY_OLD', 'QUANTITY_NEW',
             'MKT_VALUE_USD_NEW', 'MKT_VALUE_USD_OLD', 'Weight', 'Weekly Change $', 'Return', 'Contribution']
     data_ = asset_metrics(df, dfVS, mkt_last)
@@ -1289,7 +1247,6 @@ def process_portfs(data:pd.DataFrame, dataVS:pd.DataFrame, port:str, path:str, n
 ### ======================================================= ###
 ###                         Codigo 8                        ###
 ### ======================================================= ###
-
 def vix_plot(data:pd.DataFrame, columns:list[str], path:str, name:str, axys:list[tuple], fdays:int):
     """
     Descript:
@@ -1373,7 +1330,6 @@ def vix_plot(data:pd.DataFrame, columns:list[str], path:str, name:str, axys:list
 ### ======================================================= ###
 ###                         Codigo 9                        ###
 ### ======================================================= ###
-
 def slide_look(ppt:pptx.Presentation, num_slide:int, img_path:str, txt:str):
     """
     Descript:
