@@ -146,88 +146,76 @@ slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_SCH_SIN_HCITY.png', 
 nslide += 1         # Diapositiva 26 - SCH | YTD (Retorno efectivo Corregido - sin HCITY)
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_SCH_SIN_HCITY_YTD.png', foot_note)
 
-nslide += 1         # Diapositiva 27 - Separador Golgman Sachs
-nslide += 1         # Diapositiva 28 - SCH | Goldman Sachs 2019-2025 (Dolares)
-# df = get_df(path_to_db, 'SigCap_SCH.db', 'GSS')
-# slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/GS.png', sheetname = 'SCHGSS', txt = foot_note)
-
-nslide += 1         # Diapositiva 29 - SCH Goldman Sachs 2024-2025 (dolares)
-# slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/GS12M.png', txt = foot_note)
-
-nslide += 1         # Diapositiva 30 - Separador UBS
-nslide += 1         # Diapositiva 31 - SCH | UBS 2019-2025 (dolares)
+nslide += 1         # Diapositiva 27 - Separador UBS
+nslide += 1         # Diapositiva 28 - SCH | UBS 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'UBS')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH.png', sheetname = 'SCHUBS', txt = foot_note, rends = True)
 
-nslide += 1         # Dipaositiva 32 - SCH | UBS 2024-2025 (dolares)
+nslide += 1         # Dipaositiva 29 - SCH | UBS 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBSSCH12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 33 - Separador Morgan Stanley
-nslide += 1         # Diapositiva 34 - SCH | Morgan Stanley 2014-2025 (dolares)
+nslide += 1         # Diapositiva 30 - Separador Morgan Stanley
+nslide += 1         # Diapositiva 31 - SCH | Morgan Stanley 2014-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'MSY')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS.png', sheetname = 'SCHMSY', txt = foot_note, rends = True)
 
-nslide += 1         # Diapositiva 35 - SCH | Morgan Stanley 2024-2025 (dolares)
+nslide += 1         # Diapositiva 32 - SCH | Morgan Stanley 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MS12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 36 - Separador Santander Suiza
-nslide += 1         # Diapositiva 37 - SCH | Santander Suiza 2019-2025 (dolares)
+nslide += 1         # Diapositiva 33 - Separador Santander Suiza
+nslide += 1         # Diapositiva 34 - SCH | Santander Suiza 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'SSZ')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SS12M.png', sheetname = 'SCHSSZ', txt = foot_note, rends = True)
 
-nslide += 1         # Diapositiva 38 - SCH | Santander Suiza 2024-2025 (dolares)
+nslide += 1         # Diapositiva 35 - SCH | Santander Suiza 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SS.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 39 - SCH | Santander Suiza Buy & Hold (dolares)
-placeholder = lamina_n.placeholders[15]
-placeholder.text = foot_note
-
-nslide += 1         # Diapositiva 40 - Separador Deutsche Bank
-nslide += 1         # Diapositiva 41 - SCH | Deutsche Bank 2019-2025 (dolares)
+nslide += 1         # Diapositiva 36 - Separador Deutsche Bank
+nslide += 1         # Diapositiva 37 - SCH | Deutsche Bank 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'DBK')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB.png', sheetname = 'SCHDBK', txt = foot_note, rends = True)
 
-nslide += 1         # Diapositiva 42 - SCH | Deutsche Bank 2024-2025 (dolares)
+nslide += 1         # Diapositiva 38 - SCH | Deutsche Bank 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/DB12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 43 - Separador JP Morgan
-nslide += 1         # Diapositiva 44 - SCH | JP Morgan 2019-2025 (dolares)
+nslide += 1         # Diapositiva 39 - Separador JP Morgan
+nslide += 1         # Diapositiva 40 - SCH | JP Morgan 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_SCH.db', 'JPM')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JPM.png', sheetname = 'SCHJPM', txt = foot_note, rends = True)
 
-nslide += 1         # Diapositiva 45 - SCH | JP Morgan 2024-2025 (dolares)
+nslide += 1         # Diapositiva 41 - SCH | JP Morgan 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JPM12M.png', txt = foot_note)
 
 ### ================================================ ###
 ###                          NFD                     ###
 ### ================================================ ###
-nslide += 1         # Diapositiva 46 - Separador NFD
-nslide += 1         # Diapositiva 47 - NFD | Rendimiento 2024-2026
+nslide += 1         # Diapositiva 42 - Separador NFD
+nslide += 1         # Diapositiva 43 - NFD | Rendimiento 2024-2026
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_NFD.png', foot_note)
 
-nslide += 1         # Diapositiva 48 - NFD | Rendimiento YTD
+nslide += 1         # Diapositiva 44 - NFD | Rendimiento YTD
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_NFD_YTD.png', foot_note)
 
-nslide += 1         # Diapositiva 49 - NFD | Rendimiento 2024-2026 (Sin Equities)
+nslide += 1         # Diapositiva 45 - NFD | Rendimiento 2024-2026 (Sin Equities)
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_NFD_SIN_EQTS.png', foot_note)
 
-nslide += 1         # Diapositiva 50 - NFD | Rendimiento YTD (Sin Equities)
+nslide += 1         # Diapositiva 46 - NFD | Rendimiento YTD (Sin Equities)
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/REND_NFD_SIN_EQTS_YTD.png', foot_note)
 
-nslide += 1         # Diapositiva 51 - NFD | Asset Mix
+nslide += 1         # Diapositiva 47 - NFD | Asset Mix
 slide_look(ppt, nslide, f'{path_pc}/Asset Allocation/Vistas/2 - ASSET MIX NFD.png', foot_note)
 
-nslide += 1         # Diapositiva 52 - NFD | 2019-2025 (dolares)
+nslide += 1         # Diapositiva 48 - NFD | 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap.db', 'PORT_NFD_NAV')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/NFD.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 53 - NFD | 2024-2025 (dolares)
+nslide += 1         # Diapositiva 49 - NFD | 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/NFD12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 54 - NFD | Variacion Semanal (dolares)
+nslide += 1         # Diapositiva 50 - NFD | Variacion Semanal (dolares)
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/NFD_WATERFALL.png', foot_note)
 
-nslide += 1         # Diapositiva 55 - NFD | Contribuidores al rendimiento
+nslide += 1         # Diapositiva 51 - NFD | Contribuidores al rendimiento
 lamina_n = ppt.slides[nslide]
 placeholder = lamina_n.placeholders[13]                             # Contributors plot
 image_path = f'{path_pc}/DATOS/Graficas_PPT/Top10NFD.png'
@@ -238,60 +226,60 @@ placeholder_picture = placeholder.insert_picture(image_path)
 placeholder = lamina_n.placeholders[16]
 placeholder.text = foot_note
 
-nslide += 1         # Diapositiva 56 - NFD | NFD s/HCITY | Asset Mix
+nslide += 1         # Diapositiva 52 - NFD | NFD s/HCITY | Asset Mix
 slide_look(ppt, nslide, f'{path_pc}/Asset Allocation/Vistas/3 - ASSET MIX NFD SIN HCITY.png', foot_note)
 
-nslide += 1         # Dipoasitiva 57 - NFD s/HCITY | 2019-2025 (dolares)
+nslide += 1         # Dipoasitiva 53 - NFD s/HCITY | 2019-2025 (dolares)
 hcity = get_df(path_to_db, 'SigCap.db', 'HCITY')
 df_w_hcity = pd.merge(df, hcity[['DATE', 'HCITY_NFD', 'LOANS_NFD']], on = 'DATE')
 df_w_hcity.columns = df.columns.to_list() + ['HCITY', 'HCITY_LOAN']
 df_w_hcity['NAV WITHOUT HCITY'] = df_w_hcity.NAV - df_w_hcity.HCITY - df_w_hcity.HCITY_LOAN
 slide_area(path_pc, ppt, nslide, df_w_hcity, f'{path_pc}/DATOS/Graficas_PPT/NFD_W_HCITY.png', serie = 'NAV WITHOUT HCITY', txt = foot_note)
 
-nslide += 1         # Diapositiva 58 - Separador CITIBANK
-nslide += 1         # Diapositiva 59 - NFD | CITIBANK 2019-2025 (dolares)
+nslide += 1         # Diapositiva 54 - Separador CITIBANK
+nslide += 1         # Diapositiva 55 - NFD | CITIBANK 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_NFD.db', 'CTI')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/CTI.png', sheetname = 'NFDCTI', txt = foot_note)
 
-nslide += 1         # Dipoasotiva 60 - NFD | CITIBANK 2024-2025 (dolares)
+nslide += 1         # Dipoasotiva 56 - NFD | CITIBANK 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/CTI12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 61 - Separador Julius Baer
-nslide += 1         # Diapositiva 62 - NFD | Julius Baer 2019-2025 (dolares)
+nslide += 1         # Diapositiva 57 - Separador Julius Baer
+nslide += 1         # Diapositiva 58 - NFD | Julius Baer 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_NFD.db', 'JBR')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JB.png', sheetname = 'NFDJBR', txt = foot_note)
 
-nslide += 1         # Diapositiva 63 - NFD | Julius Baer 2024-2025 (dolares)
+nslide += 1         # Diapositiva 59 - NFD | Julius Baer 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/JB12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 64 - Separador Santander Suiza
-nslide += 1         # Diapositiva 65 - NFD | Santander Suiza 2019-2025 (dolares)
+nslide += 1         # Diapositiva 60 - Separador Santander Suiza
+nslide += 1         # Diapositiva 61 - NFD | Santander Suiza 2019-2025 (dolares)
 df = get_df( path_to_db,'SigCap_NFD.db','SSZ' )
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SSNFD.png', sheetname = 'NFDSSZ', txt = foot_note)
 
-nslide += 1         # Diapositiva 66 - NFD | Santander Suiza 2024-2025 (dolares)
+nslide += 1         # Diapositiva 62 - NFD | Santander Suiza 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/SSNFD12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 67 - Separador UBS
-nslide += 1         # Diapositiva 68 - NFD | UBS 2019-2025 (dolares)
+nslide += 1         # Diapositiva 63 - Separador UBS
+nslide += 1         # Diapositiva 64 - NFD | UBS 2019-2025 (dolares)
 df = get_df( path_to_db,'SigCap_NFD.db','UBS' )
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBS.png', sheetname = 'NFDUBS', txt = foot_note)
 
-nslide += 1         # Diapositiva 69 - NFD | UBS 2024-2025 (dolares)
+nslide += 1         # Diapositiva 65 - NFD | UBS 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/UBS12M.png', txt = foot_note)
 
 ### ================================================ ###
 ###                          WK                      ###
 ### ================================================ ###
-nslide += 1         # Diapositiva 70 - Separador WK
-nslide += 1         # Diapositiva 71 - WK | 2019-2025 (dolares)
+nslide += 1         # Diapositiva 66 - Separador WK
+nslide += 1         # Diapositiva 67 - WK | 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap.db', 'PORT_WK_NAV')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/WK.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 72 - WK | 2024.2025 (dolares)
+nslide += 1         # Diapositiva 68 - WK | 2024.2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/WK12M.png', txt = foot_note)
 
-nslide += 1         # Diapositiva 73 - WK | Contribuidores al rendimiento
+nslide += 1         # Diapositiva 69 - WK | Contribuidores al rendimiento
 lamina_n = ppt.slides[nslide]
 placeholder = lamina_n.placeholders[13]                             # Contributors plot
 image_path = f'{path_pc}/DATOS/Graficas_PPT/Top10WK.png'
@@ -302,31 +290,31 @@ placeholder_picture = placeholder.insert_picture(image_path)
 placeholder = lamina_n.placeholders[16]
 placeholder.text = foot_note
 
-nslide += 1         # Diapositiva 74 - WK | Asset Mix
+nslide += 1         # Diapositiva 70 - WK | Asset Mix
 slide_look(ppt, nslide, f'{path_pc}/Asset Allocation/Vistas/2 - ASSET MIX WK.png', foot_note)
 
-nslide += 1         # Diapositiva 75 - Separador Morgan Stanley
-nslide += 1         # Diapositiva 76 - WK | Morgan stanley 2019-2025 (dolares)
+nslide += 1         # Diapositiva 71 - Separador Morgan Stanley
+nslide += 1         # Diapositiva 72 - WK | Morgan stanley 2019-2025 (dolares)
 df = get_df(path_to_db, 'SigCap_WK.db', 'MSY')
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MSWK.png', sheetname = 'WKMSY', txt = foot_note)
 
-nslide += 1         # Diapositiva 77 - WK | Morgan Stanley 2024-2025 (dolares)
+nslide += 1         # Diapositiva 73 - WK | Morgan Stanley 2024-2025 (dolares)
 slide_area(path_pc, ppt, nslide, df, f'{path_pc}/DATOS/Graficas_PPT/MSWK12M.png', txt = foot_note)
 
 
 ### ================================================ ###
 ###                        NOTAS                     ###
 ### ================================================ ###
-nslide += 1         # Diapositiva 78 - Separador Semaforo del portafolio
-nslide += 1         # Diapositiva 79 - NFD | Asset Mix con notras estructuradas
+nslide += 1         # Diapositiva 74 - Separador Semaforo del portafolio
+nslide += 1         # Diapositiva 75 - NFD | Asset Mix con notras estructuradas
 slide_look(ppt, nslide, f'{path_pc}/Asset Allocation/Vistas/5 - ASSET MIX NFD STRUCTURED NOTES.png', foot_note)
 
-nslide += 1         # Diapositiva 80 - Notas | Monitor Exposicion por Emisor en Indice
+nslide += 1         # Diapositiva 76 - Notas | Monitor Exposicion por Emisor en Indice
 lamina_n = ppt.slides[nslide]
 placeholder = lamina_n.placeholders[15]                             # Bar plot
 placeholder.text = foot_note
 
-#                   # Diapositivas 81-84 NFD | Monitor de Notas Estructuradsa (1-24)
+#                   # Diapositivas 77-80 NFD | Monitor de Notas Estructuradsa (1-24)
 imgs = listdir(f'{path_pc}/DATOS/Graficas_PPT/Notas/')
 placehldrs = [13, 16, 17, 18, 19, 20]
 
@@ -344,14 +332,14 @@ for diap in range(4): # Son 4 laminas de notas
     placeholder = lamina_n.placeholders[15]
     placeholder.text = foot_note
 
-nslide += 1         # Diapositiva 85 - Separador Cupones Semanales
-nslide += 1         # Diapositiva 86 - Notas | VIX Corto Plazo vs Cupones Principales Indices
+nslide += 1         # Diapositiva 81 - Separador Cupones Semanales
+nslide += 1         # Diapositiva 82 - Notas | VIX Corto Plazo vs Cupones Principales Indices
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/VIXXO.png', foot_note)
 
-nslide += 1         # Diapositiva 87 - Notas | VIX vs Cupones Principales Indices
+nslide += 1         # Diapositiva 83 - Notas | VIX vs Cupones Principales Indices
 slide_look(ppt, nslide, f'{path_pc}/DATOS/Graficas_PPT/VIX.png', foot_note)
 
-nslide += 1         # Diapositiva 88 - Consolidado | Asset Mix por Sponsor
+nslide += 1         # Diapositiva 84 - Consolidado | Asset Mix por Sponsor
 slide_look(ppt, nslide, f'{path_pc}/Asset Allocation/Vistas/7 - ETF MIX BY SPONSOR.png', foot_note)
 
 ppt.save(f'{path_pc}/DATOS/Presentaciones/PPT-{ppt_datetime.strftime("%Y-%m-%d")}.pptx')
